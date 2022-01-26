@@ -10,10 +10,13 @@
 <body onload="initGame()">
     <h1>Minesweeper</h1>
     <h2>Choose Your Level</h2>
-    <button>Easy</button>
-    <button>Medium</button>
-    <button>Hard</button>
-    <div><span class="timer">000</span></div>
+    <button onclick="chooseLevel('easy')">Easy</button>
+    <button onclick="chooseLevel('medium')">Medium</button>
+    <button onclick="chooseLevel('hard')">Hard</button>
+    <div>
+        <span class="mines-remaining"></span>
+        <span class="smiley" onclick="initGame()"></span>
+        <span class="timer">000</span></div>
     <div class="board-container"></div>
     <script src="js/utils.js"></script>
     <script src="js/game.js"></script>

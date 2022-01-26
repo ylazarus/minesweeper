@@ -2,27 +2,21 @@
 const MINE = '💣'
 const FLAG = '🚩'
 const NONE = ''
+const SMILE = '😃'
+const COOL = '😎'
+const SAD = '☠'
 //globals here
 
 var gAllCellIds
 var gGameTimer
 var gBoard // The Model
 
-//This is an object by which the
-// board size is set (in this case:
-// 4x4 board and how many mines
-// to put)
+
 var gLevel = {
     size: 4,
     mines: 2
 }
 
-//This is an object in which you can keep and update the
-// current game state:
-// isOn: Boolean, when true we let the user play
-// shownCount: How many cells are shown
-// markedCount: How many cells are marked (with a flag)
-// secsPassed: How many seconds passed 
 var gGame = {
     isOn: false,
     shownCount: 0,
@@ -31,23 +25,15 @@ var gGame = {
 }
 
 
-
-// game starts here
-
-
 function initGame() {
+    resetGame()
     gBoard = buildBoard()
     renderBoard(gBoard)
-
 }
 
 //functions to make as per PDF
 
 function buildBoard() {
-    // Builds the board
-    // Set mines at random locations
-    // Call setMinesNegsCount()
-    // Return the created board
     var size = gLevel.size;
     var board = [];
     var cellNum = 1
@@ -58,10 +44,6 @@ function buildBoard() {
             cellNum++
         }
     }
-    placeMines(board)
-    setMinesNegsCount(board)
-    console.log(board)
-    // once i have the board, set the board.minesAroundCount with the function
     return board;
 }
 
@@ -107,10 +89,9 @@ function mineCounter(board, iPos, jPos) {
 
 
 function cellClicked(elCell, i, j) {
-    console.log(elCell);
     var currCell = gBoard[i][j]
-    console.log(currCell);
-    if (!gGame.isOn) onFirstClick()
+    if (!gGame.secsPassed) onFirstClick()
+    if (!gGame.isOn) return
     if (currCell.isMarked) return
     if (!currCell.isMine) {
         currCell.isShown = true
@@ -126,31 +107,55 @@ function cellClicked(elCell, i, j) {
         elCell.classList.add('is-mine')
         gameLost()
     }
+    checkGameOver()
 }
 
 function onFirstClick() {
     gGame.isOn = true
+    placeMines(gBoard)
+    setMinesNegsCount(gBoard)
     startTimer()
-    //make sure clicked is not a mine
+
 }
 
-function cellMarked(elCell) {
-    //     Called on right click to mark a
-    // cell (suspected to be a mine)
-    // Search the web (and
-    // implement) how to hide the
-    // context menu on right click
-
+function cellMarked(elCell, i, j) {
+    if (!gGame.secsPassed) onFirstClick()
+    if (!gGame.isOn) return
+    var currCell = gBoard[i][j]
+    if (currCell.isMarked) {
+        currCell.isMarked = false
+        elCell.innerText = NONE
+    } else {
+        currCell.isMarked = true
+        elCell.innerText = FLAG
+    }
+    checkGameOver()
 }
 
 function gameLost() {
-
+    clearInterval(gGameTimer)
+    gGame.isOn = false
+    var elSmiley = document.querySelector(".smiley")
+    elSmiley.innerText = SAD
 }
 
 function checkGameOver() {
-    //     Game ends when all mines are
-    // marked, and all the other cells
-    // are shown
+    var totalNotMines = gLevel.size ** 2 - gLevel.mines
+    var shownCount = 0
+    var correctlyMarkedCount = 0
+    for (var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard[0].length; j++) {
+            var currCell = gBoard[i][j]
+            if (currCell.isShown) shownCount++
+            if (currCell.isMarked && currCell.isMine) correctlyMarkedCount++
+        }
+    }
+    if (shownCount === totalNotMines && correctlyMarkedCount === gLevel.mines) {
+        clearInterval(gGameTimer)
+        gGame.isOn = false
+        var elSmiley = document.querySelector(".smiley")
+        elSmiley.innerText = COOL
+    }
 }
 
 function expandShown(board, elCell, iPos, jPos) {
@@ -158,13 +163,14 @@ function expandShown(board, elCell, iPos, jPos) {
         if (i < 0 || i > board.length - 1) continue
         for (var j = jPos - 1; j <= jPos + 1; j++) {
             if (j < 0 || j > board[0].length - 1) continue
-            if (i === iPos && j === jPos) continue
+            // if (i === iPos && j === jPos) continue 
+            // took out to solve a bug that the clicked cell was
+            // not marking when first cell was a mine
             var currCell = board[i][j]
-            console.log(currCell)
+            if (currCell.isMarked) continue
             currCell.isShown = true
-            //add to the currcell classlist!!!!
             var elCurrCell = document.querySelector(`.cell-${i}-${j}`)
-                elCurrCell.classList.add('is-shown')
+            elCurrCell.classList.add('is-shown')
             if (currCell.minesAroundCount) {
                 elCurrCell.innerText = currCell.minesAroundCount
             }
@@ -172,13 +178,32 @@ function expandShown(board, elCell, iPos, jPos) {
     }
 }
 
+function chooseLevel(level) {
+    clearInterval(gGameTimer)
+    if (level === 'easy') {
+        gLevel.size = 4
+        gLevel.mines = 2
+    } else if (level === 'medium') {
+        gLevel.size = 8
+        gLevel.mines = 12
+    } else if (level === 'hard') {
+        gLevel.size = 12
+        gLevel.mines = 30
+    }
+    initGame()
+}
 
-
+function resetGame() {
+    var elSmiley = document.querySelector(".smiley")
+    elSmiley.innerText = SMILE
+    clearInterval(gGameTimer)
+    gGame.isOn = false
+    gGame.shownCount = 0
+    gGame.markedCount = 0
+    gGame.secsPassed = 0
+    document.querySelector(".timer").innerText = '000'
+}
 // BONUS: if you have the time
 // later, try to work more like the
 // real algorithm (see description
 // at the Bonuses section below)
-
-function reveal(currCell, elCell) {
-
-}

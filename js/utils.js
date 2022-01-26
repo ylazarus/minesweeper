@@ -5,7 +5,7 @@
 function renderBoard(board) {
     //Render the board as a <table> to the page
     var cellNum = 1
-    var strHTML = '<table border="0"><tbody>';
+    var strHTML = '<table border="0"><tbody oncontextmenu="return false;">';
     for (var i = 0; i < board.length; i++) {
         strHTML += '<tr>';
         for (var j = 0; j < board[0].length; j++) {
@@ -13,7 +13,7 @@ function renderBoard(board) {
             if (!board[i][j].minesAroundCount) cell = NONE
             if (board[i][j].isMine) cell = MINE
             var className = 'cell cell-' + i + '-' + j;
-            strHTML += `<td id="${cellNum}" class="' + ${className} + '" onclick="cellClicked(this, ${i}, ${j})">  </td>`
+            strHTML += `<td id="${cellNum}" class="' + ${className} + '" onclick="cellClicked(this, ${i}, ${j})" onauxclick="cellMarked(this, ${i}, ${j})">  </td>`
             cellNum++
         }
         strHTML += '</tr>'
