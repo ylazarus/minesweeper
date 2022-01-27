@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,18 +8,24 @@
     <title>Minesweeper</title>
     <link rel="stylesheet" href="css/app.css">
 </head>
+
 <body onload="initGame()">
     <h1>Minesweeper</h1>
-    <h2>Choose Your Level</h2>
+    <h3>Choose Your Level</h3>
     <button onclick="chooseLevel('easy')">Easy</button>
     <button onclick="chooseLevel('medium')">Medium</button>
     <button onclick="chooseLevel('hard')">Hard</button>
     <div>
-        <span class="mines-remaining"></span>
-        <span class="smiley" onclick="initGame()"></span>
-        <span class="timer">000</span></div>
-    <div class="board-container"></div>
-    <script src="js/utils.js"></script>
-    <script src="js/game.js"></script>
+        <div class="mines-remaining"></div>
+        <div class="smiley" onclick="initGame()"></div>
+        <div class="timer">000</span>
+    </div>
+        <div class="board-container"></div>
+
+    <h3>You have <span class="lives-left"></span> left</h3>
+
+        <script src="js/utils.js"></script>
+        <script src="js/game.js"></script>
 </body>
+
 </html>

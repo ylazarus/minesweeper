@@ -4,13 +4,13 @@ const FLAG = '🚩'
 const NONE = ''
 const SMILE = '😃'
 const COOL = '😎'
-const SAD = '☠'
-//globals here
+const SAD = '😈'
+const HURT = '🤕'
 
 var gAllCellIds
 var gGameTimer
-var gBoard // The Model
-
+var gBoard
+var gMinesRemaining
 
 var gLevel = {
     size: 4,
@@ -21,17 +21,15 @@ var gGame = {
     isOn: false,
     shownCount: 0,
     markedCount: 0,
-    secsPassed: 0
+    secsPassed: 0,
+    livesLeft: 1
 }
-
 
 function initGame() {
     resetGame()
     gBoard = buildBoard()
     renderBoard(gBoard)
 }
-
-//functions to make as per PDF
 
 function buildBoard() {
     var size = gLevel.size;
@@ -48,12 +46,10 @@ function buildBoard() {
 }
 
 function placeMines(board) {
-    gAllCellIds = getNums(gLevel.size ** 2)
     for (var i = 0; i < gLevel.mines; i++) {
         var randomCellId = drawNum(gAllCellIds)
         placeMine(board, randomCellId)
     }
-
 }
 
 function placeMine(board, id) {
@@ -68,7 +64,6 @@ function setMinesNegsCount(board) {
     for (var i = 0; i < board.length; i++) {
         for (var j = 0; j < board[0].length; j++) {
             board[i][j].minesAroundCount = mineCounter(board, i, j)
-
         }
     }
 }
@@ -86,36 +81,53 @@ function mineCounter(board, iPos, jPos) {
     return count
 }
 
-
-
 function cellClicked(elCell, i, j) {
     var currCell = gBoard[i][j]
-    if (!gGame.secsPassed) onFirstClick()
+    if (!gGame.secsPassed && !gGame.isOn) onFirstClick(currCell)
     if (!gGame.isOn) return
-    if (currCell.isMarked) return
-    if (!currCell.isMine) {
-        currCell.isShown = true
-        elCell.classList.add('is-shown')
-        if (currCell.minesAroundCount) {
-            elCell.innerText = currCell.minesAroundCount
-        } else {
-            expandShown(gBoard, elCell, i, j)
-        }
-    } else if (gBoard[i][j].isMine) {
-        currCell.isShown = true
-        elCell.innerText = MINE
-        elCell.classList.add('is-mine')
-        gameLost()
-    }
+    if (currCell.isMarked || currCell.isShown) return
+    if (!currCell.isMine) openCell(elCell, i, j)
+    else if (currCell.isMine) mineClicked(elCell, i, j)
+
     checkGameOver()
 }
 
-function onFirstClick() {
+function openCell(elCell, i, j) {
+    var elSmile = document.querySelector(".smiley")
+    if (elSmile.innerText !== SMILE) elSmile.innerText = SMILE
+    var currCell = gBoard[i][j]
+    currCell.isShown = true
+    elCell.classList.add('is-shown')
+    if (currCell.minesAroundCount) {
+        elCell.innerText = currCell.minesAroundCount
+    } else {
+        expandShown(gBoard, elCell, i, j)
+    }
+}
+
+function mineClicked(elCell, i, j) {
+    var currCell = gBoard[i][j]
+    gGame.livesLeft--
+    currCell.isShown = true
+    elCell.innerText = MINE
+    elCell.classList.add('is-mine')
+    document.querySelector(".smiley").innerText = HURT
+    updateLivesElement()
+    if (!gGame.livesLeft) gameLost()
+
+}
+
+function onFirstClick(currCell) {
+    startTimer()
     gGame.isOn = true
+    gAllCellIds = getNums(gLevel.size ** 2)
+    // remove currCell from array so mine can't be placed there
+    var currCellNum = currCell.cellNum
+    var idx = gAllCellIds.indexOf(currCellNum)
+    gAllCellIds.splice(idx, 1)
+
     placeMines(gBoard)
     setMinesNegsCount(gBoard)
-    startTimer()
-
 }
 
 function cellMarked(elCell, i, j) {
@@ -129,14 +141,27 @@ function cellMarked(elCell, i, j) {
         currCell.isMarked = true
         elCell.innerText = FLAG
     }
+    gMinesRemaining--
+    var elMinesRemaining = document.querySelector(".mines-remaining")
+    elMinesRemaining.innerText = gMinesRemaining
+
     checkGameOver()
 }
 
 function gameLost() {
     clearInterval(gGameTimer)
     gGame.isOn = false
-    var elSmiley = document.querySelector(".smiley")
-    elSmiley.innerText = SAD
+    document.querySelector(".smiley").innerText = SAD
+    // reveal all mines
+    for (var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard[0].length; j++) {
+            var currCell = gBoard[i][j]
+            if (currCell.isMine) {
+                currCell.isShown = true
+                document.getElementById(`${currCell.cellNum}`).innerText = MINE
+            }
+        }
+    }
 }
 
 function checkGameOver() {
@@ -153,12 +178,12 @@ function checkGameOver() {
     if (shownCount === totalNotMines && correctlyMarkedCount === gLevel.mines) {
         clearInterval(gGameTimer)
         gGame.isOn = false
-        var elSmiley = document.querySelector(".smiley")
-        elSmiley.innerText = COOL
+        document.querySelector(".smiley").innerText = COOL
     }
 }
 
 function expandShown(board, elCell, iPos, jPos) {
+    var emptyCell
     for (var i = iPos - 1; i <= iPos + 1; i++) {
         if (i < 0 || i > board.length - 1) continue
         for (var j = jPos - 1; j <= jPos + 1; j++) {
@@ -174,12 +199,14 @@ function expandShown(board, elCell, iPos, jPos) {
             if (currCell.minesAroundCount) {
                 elCurrCell.innerText = currCell.minesAroundCount
             }
+            // if (!currCell.minesAroundCount) {
+            //     expandShown(board, elCurrCell, i, j)
+            // }
         }
     }
 }
 
 function chooseLevel(level) {
-    clearInterval(gGameTimer)
     if (level === 'easy') {
         gLevel.size = 4
         gLevel.mines = 2
@@ -194,15 +221,33 @@ function chooseLevel(level) {
 }
 
 function resetGame() {
-    var elSmiley = document.querySelector(".smiley")
-    elSmiley.innerText = SMILE
     clearInterval(gGameTimer)
+    document.querySelector(".smiley").innerText = SMILE
+    gMinesRemaining = gLevel.mines
+    document.querySelector(".mines-remaining").innerText = gMinesRemaining
     gGame.isOn = false
     gGame.shownCount = 0
     gGame.markedCount = 0
     gGame.secsPassed = 0
     document.querySelector(".timer").innerText = '000'
+    gGame.livesLeft = setLivesLeft()
+    updateLivesElement()
 }
+
+function setLivesLeft() {
+    if (gLevel.size === 4) return 1
+    else if (gLevel.size === 8) return 2
+    else return 3
+}
+
+function updateLivesElement() {
+    var elLivesLeft = document.querySelector(".lives-left")
+    if (gGame.livesLeft === 3) elLivesLeft.innerText = '3 lives'
+    else if (gGame.livesLeft === 2) elLivesLeft.innerText = '2 lives'
+    else if (gGame.livesLeft === 1) elLivesLeft.innerText = '1 life'
+    else elLivesLeft.innerText = 'no lives'
+}
+
 // BONUS: if you have the time
 // later, try to work more like the
 // real algorithm (see description
