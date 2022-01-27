@@ -96,18 +96,21 @@ function openCell(elCell, i, j) {
     var elSmile = document.querySelector(".smiley")
     if (elSmile.innerText !== SMILE) elSmile.innerText = SMILE
     var currCell = gBoard[i][j]
-    currCell.isShown = true
-    elCell.classList.add('is-shown')
+    
     if (currCell.minesAroundCount) {
         elCell.innerText = currCell.minesAroundCount
+        currCell.isShown = true
+    elCell.classList.add('is-shown')
     } else {
-        expandShown(gBoard, elCell, i, j)
+        expandShown(gBoard, i, j)
     }
 }
 
 function mineClicked(elCell, i, j) {
     var currCell = gBoard[i][j]
     gGame.livesLeft--
+    gMinesRemaining--
+    document.querySelector(".mines-remaining").innerText = gMinesRemaining
     currCell.isShown = true
     elCell.innerText = MINE
     elCell.classList.add('is-mine')
@@ -142,8 +145,7 @@ function cellMarked(elCell, i, j) {
         elCell.innerText = FLAG
     }
     gMinesRemaining--
-    var elMinesRemaining = document.querySelector(".mines-remaining")
-    elMinesRemaining.innerText = gMinesRemaining
+    document.querySelector(".mines-remaining").innerText = gMinesRemaining
 
     checkGameOver()
 }
@@ -171,8 +173,8 @@ function checkGameOver() {
     for (var i = 0; i < gBoard.length; i++) {
         for (var j = 0; j < gBoard[0].length; j++) {
             var currCell = gBoard[i][j]
-            if (currCell.isShown) shownCount++
-            if (currCell.isMarked && currCell.isMine) correctlyMarkedCount++
+            if (currCell.isShown && !currCell.isMine) shownCount++
+            if ((currCell.isMarked || currCell.isShown) && currCell.isMine) correctlyMarkedCount++
         }
     }
     if (shownCount === totalNotMines && correctlyMarkedCount === gLevel.mines) {
@@ -182,26 +184,22 @@ function checkGameOver() {
     }
 }
 
-function expandShown(board, elCell, iPos, jPos) {
-    var emptyCell
+function expandShown(board, iPos, jPos) {
     for (var i = iPos - 1; i <= iPos + 1; i++) {
         if (i < 0 || i > board.length - 1) continue
         for (var j = jPos - 1; j <= jPos + 1; j++) {
             if (j < 0 || j > board[0].length - 1) continue
-            // if (i === iPos && j === jPos) continue 
-            // took out to solve a bug that the clicked cell was
-            // not marking when first cell was a mine
             var currCell = board[i][j]
             if (currCell.isMarked) continue
+            if (currCell.isShown) continue
             currCell.isShown = true
             var elCurrCell = document.querySelector(`.cell-${i}-${j}`)
             elCurrCell.classList.add('is-shown')
             if (currCell.minesAroundCount) {
                 elCurrCell.innerText = currCell.minesAroundCount
+            } else if (!currCell.minesAroundCount) {
+                expandShown(board, i, j)
             }
-            // if (!currCell.minesAroundCount) {
-            //     expandShown(board, elCurrCell, i, j)
-            // }
         }
     }
 }
