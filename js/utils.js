@@ -57,3 +57,14 @@ function drawNum(array) {
     array.splice(idx, 1)
     return num
 }
+
+function copyBoard(board) {
+    var newBoard = [];
+    for (var i = 0; i < board.length; i++) {
+        newBoard[i] = [];
+        for (var j = 0; j < board[0].length; j++) {
+            newBoard[i][j] = board[i][j];
+        }
+    }
+    return newBoard;
+}

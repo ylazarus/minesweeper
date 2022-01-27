@@ -11,6 +11,7 @@ var gAllCellIds
 var gGameTimer
 var gBoard
 var gMinesRemaining
+// var capturedClicks =[]
 
 var gLevel = {
     size: 4,
@@ -93,6 +94,9 @@ function cellClicked(elCell, i, j) {
     checkGameOver()
 }
 
+
+
+
 function openCell(elCell, i, j) {
     var elSmile = document.querySelector(".smiley")
     if (elSmile.innerText !== SMILE) elSmile.innerText = SMILE
@@ -135,17 +139,19 @@ function onFirstClick(currCell) {
 }
 
 function cellMarked(elCell, i, j) {
-    if (!gGame.secsPassed) onFirstClick()
-    if (!gGame.isOn) return
     var currCell = gBoard[i][j]
+    if (!gGame.secsPassed && !gGame.isOn) onFirstClick()
+    if (!gGame.isOn) return
+    if (currCell.isShown) return
     if (currCell.isMarked) {
         currCell.isMarked = false
         elCell.innerText = NONE
+        gMinesRemaining++
     } else {
         currCell.isMarked = true
         elCell.innerText = FLAG
+        gMinesRemaining--
     }
-    gMinesRemaining--
     document.querySelector(".mines-remaining").innerText = gMinesRemaining
 
     checkGameOver()
@@ -168,6 +174,7 @@ function gameLost() {
 }
 
 function checkGameOver() {
+    if (gGame.livesLeft === 0) return
     var totalNotMines = gLevel.size ** 2 - gLevel.mines
     var shownCount = 0
     var correctlyMarkedCount = 0
@@ -183,7 +190,6 @@ function checkGameOver() {
         gGame.isOn = false
         document.querySelector(".smiley").innerText = COOL
         var score = gGame.secsPassed
-        console.log(score)
         checkHighScore(score, gLevel.size)
     }
 }
@@ -295,8 +301,3 @@ function updateLivesElement() {
     else if (gGame.livesLeft === 1) elLivesLeft.innerText = '1 life'
     else elLivesLeft.innerText = 'no lives'
 }
-
-// BONUS: if you have the time
-// later, try to work more like the
-// real algorithm (see description
-// at the Bonuses section below)
