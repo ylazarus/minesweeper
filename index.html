@@ -11,7 +11,6 @@
 
 <body onload="initGame()">
     <h1>Minesweeper</h1>
-    <h3>Choose Your Level</h3>
     <button onclick="chooseLevel('easy')">Easy</button>
     <button onclick="chooseLevel('medium')">Medium</button>
     <button onclick="chooseLevel('hard')">Hard</button>
@@ -22,7 +21,8 @@
     </div>
         <div class="board-container"></div>
 
-    <h3>You have <span class="lives-left"></span> left</h3>
+    <h4>You have <span class="lives-left"></span> left</h4>
+    <h5>Current Leaders: <span class="hi-scores"></span></h5>
 
         <script src="js/utils.js"></script>
         <script src="js/game.js"></script>

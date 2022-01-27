@@ -38,7 +38,6 @@ function countTimer() {
         totalSeconds = "0" + totalSeconds;
     if (totalSeconds < 100)
         totalSeconds = "0" + totalSeconds;
-    gGame.secsPassed = totalSeconds
     document.querySelector(".timer").innerText = totalSeconds;
 }
 

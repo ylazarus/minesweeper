@@ -29,6 +29,7 @@ function initGame() {
     resetGame()
     gBoard = buildBoard()
     renderBoard(gBoard)
+    renderHiScores()
 }
 
 function buildBoard() {
@@ -96,11 +97,11 @@ function openCell(elCell, i, j) {
     var elSmile = document.querySelector(".smiley")
     if (elSmile.innerText !== SMILE) elSmile.innerText = SMILE
     var currCell = gBoard[i][j]
-    
+
     if (currCell.minesAroundCount) {
         elCell.innerText = currCell.minesAroundCount
         currCell.isShown = true
-    elCell.classList.add('is-shown')
+        elCell.classList.add('is-shown')
     } else {
         expandShown(gBoard, i, j)
     }
@@ -181,7 +182,56 @@ function checkGameOver() {
         clearInterval(gGameTimer)
         gGame.isOn = false
         document.querySelector(".smiley").innerText = COOL
+        var score = gGame.secsPassed
+        console.log(score)
+        checkHighScore(score, gLevel.size)
     }
+}
+
+function checkHighScore(score, level) {
+    var message = `Congratulations! ${score} is a new high score for this level on this computer! Type your name:`
+    if (level === 4) {
+        if (!localStorage.hiScoreEasy) {
+            localStorage.hiScoreEasy = Number(score)
+            localStorage.nameHiScoreEasy = prompt(message)
+        } else {
+            if (score < localStorage.hiScoreEasy) {
+                localStorage.hiScoreEasy = Number(score);
+                localStorage.nameHiScoreEasy = prompt(message)
+            }
+        }
+    }
+    if (level === 8) {
+        if (!localStorage.hiScoreMedium) {
+            localStorage.hiScoreMedium = Number(score)
+            localStorage.nameHiScoreMedium = prompt(message)
+        } else {
+            if (score < localStorage.hiScoreMedium) {
+                localStorage.hiScore = Number(score);
+                localStorage.nameHiScoreMedium = prompt(message)
+            }
+        }
+    }
+    if (level === 12) {
+        if (!localStorage.hiScoreHard) {
+            localStorage.hiScoreHard = Number(score)
+            localStorage.nameHiScoreHard = prompt(message)
+        } else {
+            if (score < localStorage.hiScoreHard) {
+                localStorage.hiScoreHard = Number(score);
+                localStorage.nameHiScoreHard = prompt(message)
+            }
+        }
+    }
+    renderHiScores()
+}
+
+function renderHiScores(){
+    var text = ''
+     if (localStorage.hiScoreEasy) text += `Easy: ${localStorage.nameHiScoreEasy}-${localStorage.hiScoreEasy}  ` 
+     if (localStorage.hiScoreMedium) text += `Medium: ${localStorage.nameHiScoreMedium}-${localStorage.hiScoreMedium}  ` 
+     if (localStorage.hiScoreHard) text += `Hard: ${localStorage.nameHiScoreHard}-${localStorage.hiScoreHard}`
+    document.querySelector('.hi-scores').innerText = text
 }
 
 function expandShown(board, iPos, jPos) {
